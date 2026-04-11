@@ -1,8 +1,15 @@
 const express = require("express");
 const cors    = require("cors");
 
-const app  = express();
-app.use(cors());
+const app = express();
+
+app.use(cors({
+  origin: "*",
+  methods: ["GET","POST","OPTIONS"],
+  allowedHeaders: ["Content-Type","Authorization"]
+}));
+
+app.options("*", cors());
 app.use(express.json({ limit: "2mb" }));
 
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
@@ -15,9 +22,9 @@ app.post("/api/dm", async (req, res) => {
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
-        "Content-Type":            "application/json",
-        "x-api-key":               ANTHROPIC_API_KEY,
-        "anthropic-version":       "2023-06-01",
+        "Content-Type":      "application/json",
+        "x-api-key":         ANTHROPIC_API_KEY,
+        "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify(req.body),
     });
