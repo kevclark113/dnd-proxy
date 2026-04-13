@@ -6,24 +6,26 @@ const app = express();
 app.use(cors({
   origin: "*",
   methods: ["GET","POST","OPTIONS"],
-  allowedHeaders: ["Content-Type","Authorization"]
+  allowedHeaders: ["Content-Type","Authorization","X-API-Key"]
 }));
 
 app.options("*", cors());
 app.use(express.json({ limit: "2mb" }));
 
-const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
+const DEFAULT_API_KEY = process.env.ANTHROPIC_API_KEY;
 
 app.post("/api/dm", async (req, res) => {
-  if (!ANTHROPIC_API_KEY) {
-    return res.status(500).json({ error: "API key not configured" });
+  // Use key from request header if provided, otherwise fall back to env var
+  const apiKey = req.headers["x-api-key"] || DEFAULT_API_KEY;
+  if (!apiKey) {
+    return res.status(401).json({ error: "No API key provided" });
   }
   try {
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
         "Content-Type":      "application/json",
-        "x-api-key":         ANTHROPIC_API_KEY,
+        "x-api-key":         apiKey,
         "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify(req.body),
