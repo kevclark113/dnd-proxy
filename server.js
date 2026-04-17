@@ -12,13 +12,13 @@ app.use(cors({
 app.options("*", cors());
 app.use(express.json({ limit: "2mb" }));
 
-const DEFAULT_API_KEY = process.env.ANTHROPIC_API_KEY;
-
 app.post("/api/dm", async (req, res) => {
-  // Use key from request header if provided, otherwise fall back to env var
-  const apiKey = req.headers["x-api-key"] || DEFAULT_API_KEY;
+  const apiKey = req.headers["x-api-key"];
   if (!apiKey) {
-    return res.status(401).json({ error: "No API key provided" });
+    return res.status(401).json({ error: "No API key provided. Please add your Anthropic API key in the app settings." });
+  }
+  if (!apiKey.startsWith("sk-ant-")) {
+    return res.status(401).json({ error: "Invalid API key format." });
   }
   try {
     const response = await fetch("https://api.anthropic.com/v1/messages", {
